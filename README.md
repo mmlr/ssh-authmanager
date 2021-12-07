@@ -38,7 +38,7 @@ facilitate more elaborate pattern matching and option composition.
 ./ssh-authmanager.py <configRepo> <config> [pull[-required]]
 ```
 
-# Standalone
+## Standalone
 The SSH Authmanager can be used statically for generating authorized\_keys files
 based on a configuration without installing anything. This usage is also a good
 way to validate the configuration and audit the generated authorized\_keys.
@@ -51,7 +51,7 @@ The produced authorized\_keys file then contains the rendered output of the
 configuration. Any warnings, errors and exceptions are reported to stderr and
 show up in the shell.
 
-# As AuthorizedKeysCommand
+## As AuthorizedKeysCommand
 To provide dynamic generation of authorized\_keys at every login attempt, the
 SSH Authmanager can be configured as an AuthorizedKeysCommand for sshd. For this
 to work, the SSH Authmanager has to be installed and a dedicated user should be
@@ -76,7 +76,7 @@ inside the main sshd\_config on such versions.
 Please review both scripts before running them to understand what they will do
 to your system.
 
-# Repository Pull
+## Repository Pull
 If the configuration repo is managed via git, the SSH Authmanager can be
 instructed to automatically do a `git pull` prior to evaluating the specified
 configuration with the optional `pull` or `pull-required` argument. In the

@@ -84,9 +84,11 @@ def escaped(which, value):
 for path, section in keys.items():
 	logging.debug(f'{path} merged config {section}')
 
-	options = ['restrict', 'port-forwarding']
-	for which in ('open', 'listen'):
-		options += parseSpec(section.get(which, ''), which)
+	options = ['restrict']
+	if 'open' in section or 'listen' in section:
+		options.append('port-forwarding')
+		for which in ('open', 'listen'):
+			options += parseSpec(section.get(which, ''), which)
 
 	singleLineOptions = ['command', 'from']
 	for which in singleLineOptions:

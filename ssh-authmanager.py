@@ -40,20 +40,10 @@ for section in config.sections():
 		if not os.path.isfile(realPath):
 			continue
 
-		key = (normalized, section)
-		if realPath in keys:
-			keys[realPath].append(key)
-		else:
-			keys[realPath] = [key]
+		if realPath not in keys:
+			keys[realPath] = {}
 
-def specifity(value):
-	return len([x for x in value if x not in '?*'])
-
-for key, sections in keys.items():
-	merged = {}
-	for normalized, section in sorted(sections, key=specifity):
-		merged.update(config[section].items())
-	keys[key] = merged
+		keys[realPath].update(config[section].items())
 
 def parseSpec(spec, which):
 	restrict = [f'permit{which}="null:1"']

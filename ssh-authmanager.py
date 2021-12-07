@@ -5,20 +5,23 @@ import glob
 import itertools
 import logging
 import os
-import subprocess
 import sys
 
 
 if len(sys.argv) < 3:
-	logging.error(f'usage: {sys.argv[0]} <repository> <config>')
+	logging.error(
+		f'usage: {sys.argv[0]} <configRepo> <config> [pull[-required]]')
 	sys.exit(1)
 
 logging.basicConfig(level=logging.INFO)
 
 os.chdir(sys.argv[1])
 
-subprocess.run(['git', 'pull'], stdout=subprocess.DEVNULL,
-	stderr=subprocess.DEVNULL)
+if len(sys.argv) > 3 and sys.argv[3] in ('pull', 'pull-required'):
+	import subprocess
+	logging.info('pull specified, doing git pull on configuration repo')
+	subprocess.run(['git', 'pull'], stdout=sys.stderr, stderr=sys.stderr,
+		check=sys.argv[3] == 'pull-required')
 
 config = configparser.ConfigParser()
 config.read(sys.argv[2])

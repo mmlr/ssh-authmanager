@@ -34,7 +34,7 @@ for section in config.sections():
 
 		realPath = os.path.realpath(path)
 		if not realPath.startswith(basePath):
-			logging.debug(f'skipping outside path {realPath} from {normalized}')
+			logging.warning(f'skip outside path {realPath} from {normalized}')
 			continue
 
 		if not os.path.isfile(realPath):

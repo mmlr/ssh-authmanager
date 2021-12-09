@@ -32,7 +32,12 @@ keys = {}
 
 for section in config.sections():
 	normalized = os.path.normpath(section)
-	for path in glob.glob(os.path.join(basePath, normalized), recursive=True):
+	matches = glob.glob(os.path.join(basePath, normalized), recursive=True)
+	if not matches:
+		logging.warning(f'unmatched pattern {section}')
+		continue
+
+	for path in matches:
 		logging.debug(f'path {path} from {section} normalized {normalized}')
 
 		realPath = os.path.realpath(path)

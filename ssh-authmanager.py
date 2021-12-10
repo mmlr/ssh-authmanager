@@ -62,12 +62,34 @@ def parseSpec(spec, which):
 			continue
 
 		hosts = ['localhost']
-		ports = line
+		portSpecs = line
 		if ':' in line:
-			hosts, ports = line.split(':')
+			hosts, portSpecs = line.split(':')
 			hosts = hosts.split(',')
 
-		ports = ports.split(',')
+		ports = []
+		for portSpec in portSpecs.split(','):
+			try:
+				if '-' in portSpec:
+					fromPort, toPort = [int(x) for x in portSpec.split('-', 2)]
+					if not 0 < fromPort <= 0xffff or not 0 < toPort <= 0xffff:
+						logging.error(
+							f'invalid from or to port in range {portSpec}')
+
+					ports += list(range(fromPort, toPort + 1))
+				elif portSpec == '*':
+					ports.append(portSpec)
+				else:
+					port = int(portSpec)
+					if not 0 < port <= 0xffff:
+						logging.error(f'invalid port number {portSpec}')
+
+					ports.append(int(portSpec))
+
+			except ValueError as exception:
+				logging.error(
+					f'unparsed port specification "{portSpec}": {exception}')
+
 		for host, port in itertools.product(hosts, ports):
 			if which == 'open' and host == '*':
 				if port != '*':

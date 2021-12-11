@@ -121,13 +121,11 @@ def parseSpec(spec, which):
 					f'unparsed port specification "{portSpec}": {exception}')
 
 		for host, port in itertools.product(hosts, ports):
-			if which == 'open' and host == '*':
-				if port != '*':
-					logging.warning('wildcard hosts with port not supported')
-					continue
-				restrict = []
+			if which == 'open' and host == '*' and port != '*':
+				logging.warning('wildcard host with port not supported in open')
 				continue
 
+			restrict = []
 			permit.append(f'permit{which}="{f"{host}:" if host else ""}{port}"')
 
 	return restrict + permit

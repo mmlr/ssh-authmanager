@@ -35,7 +35,7 @@ facilitate more elaborate pattern matching and option composition.
 
 # Usage
 ```
-./ssh-authmanager.py <configRepo> <config> [pull[-required]]
+./ssh-authmanager.py [...] <configRepo> <config>
 ```
 
 ## Standalone

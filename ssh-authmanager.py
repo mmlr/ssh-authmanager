@@ -6,25 +6,36 @@ import itertools
 import logging
 import os
 import sys
+import argparse
 
 
-if len(sys.argv) < 3:
-	logging.error(
-		f'usage: {sys.argv[0]} <configRepo> <config> [pull[-required]]')
-	sys.exit(1)
 
-logging.basicConfig(level=logging.INFO)
+parser = argparse.ArgumentParser()
+parser.add_argument('repository',
+	help='Path of the configuration repository to work in.')
+parser.add_argument('config',
+	help='Path of the configuration file to use, relative to repository.')
+parser.add_argument('-p', '--pull', dest='pull',
+	choices=['no', 'yes', 'require'], default='no',
+	help='Run "git pull" inside of the config repo. Defaults to "no", aborts '
+		'when set to "require" and the pull fails.')
+parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
+	help='Set log level to debug.')
 
-os.chdir(sys.argv[1])
+args = parser.parse_args()
 
-if len(sys.argv) > 3 and sys.argv[3] in ('pull', 'pull-required'):
+logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+
+os.chdir(args.repository)
+
+if args.pull != 'no':
 	import subprocess
 	logging.info('pull specified, doing git pull on configuration repo')
 	subprocess.run(['git', 'pull'], stdout=sys.stderr, stderr=sys.stderr,
-		check=sys.argv[3] == 'pull-required')
+		check=args.pull == 'require')
 
 config = configparser.ConfigParser()
-config.read(sys.argv[2])
+config.read(args.config)
 
 basePath = os.path.realpath('keys')
 

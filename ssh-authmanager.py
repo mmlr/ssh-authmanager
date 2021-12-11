@@ -9,6 +9,8 @@ import sys
 import argparse
 
 
+allOptions = ['open', 'listen', 'command', 'from', 'environment', 'agent',
+	'pty', 'rc', 'x11', 'expiry', 'none']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('repository',
@@ -22,6 +24,9 @@ parser.add_argument('-p', '--pull', dest='pull',
 	choices=['no', 'yes', 'require'], default='no',
 	help='Run "git pull" inside of the config repo. Defaults to "no", aborts '
 		'when set to "require" and the pull fails.')
+parser.add_argument('-a', '--allow', choices=allOptions, dest='allowed',
+	action='append', help='Only allow the specified options to be generated '
+		'from the config.')
 parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
 	help='Set log level to debug.')
 
@@ -131,6 +136,8 @@ def escape(value):
 def escaped(which, value):
 	return f'{which}="{escape(value)}"'
 
+allowed = allOptions if args.allowed is None else args.allowed
+
 for path, section in keys.items():
 	logging.debug(f'{path} merged config {section}')
 
@@ -138,10 +145,14 @@ for path, section in keys.items():
 	if 'open' in section or 'listen' in section:
 		options.append('port-forwarding')
 		for which in ('open', 'listen'):
-			options += parseSpec(section.get(which, ''), which)
+			portSpecs = section.get(which, '') if which in allowed else ''
+			options += parseSpec(portSpecs, which)
 
 	singleLineOptions = ['command', 'from']
 	for which in singleLineOptions:
+		if which not in allowed:
+			continue
+
 		value = section.get(which)
 		if value is None:
 			continue
@@ -157,6 +168,9 @@ for path, section in keys.items():
 
 	multilineOptions = ['environment']
 	for which in multilineOptions:
+		if which not in allowed:
+			continue
+
 		value = section.get(which)
 		if value is None:
 			continue
@@ -174,18 +188,22 @@ for path, section in keys.items():
 		('x11', 'X11-forwarding')
 	]
 	for which, option in booleanOptions:
+		if which not in allowed:
+			continue
+
 		value = section.get(which)
 		if value is None:
 			continue
 
 		options.append(f'{"" if value == "yes" else "no-"}{option}')
 
-	expiry = section.get('expiry')
-	if expiry is not None:
-		if not expiry.isnumeric() or len(expiry) not in (8, 12, 14):
-			logging.error(f'invalid expiry format: {expiry}')
-		else:
-			options.append(f'expiry-time="{expiry}"')
+	if 'expiry' in allowed:
+		expiry = section.get('expiry')
+		if expiry is not None:
+			if not expiry.isnumeric() or len(expiry) not in (8, 12, 14):
+				logging.error(f'invalid expiry format: {expiry}')
+			else:
+				options.append(f'expiry-time="{expiry}"')
 
 	with open(path, 'r') as publicKeyFile:
 		publicKey = publicKeyFile.read().strip()

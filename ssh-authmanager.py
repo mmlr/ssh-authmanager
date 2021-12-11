@@ -103,6 +103,7 @@ def parseSpec(spec, which):
 					if not 0 < fromPort <= 0xffff or not 0 < toPort <= 0xffff:
 						logging.error(
 							f'invalid from or to port in range {portSpec}')
+						continue
 
 					ports += list(range(fromPort, toPort + 1))
 				elif portSpec == '*':
@@ -111,6 +112,7 @@ def parseSpec(spec, which):
 					port = int(portSpec)
 					if not 0 < port <= 0xffff:
 						logging.error(f'invalid port number {portSpec}')
+						continue
 
 					ports.append(int(portSpec))
 

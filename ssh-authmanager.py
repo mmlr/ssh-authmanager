@@ -15,6 +15,9 @@ parser.add_argument('repository',
 	help='Path of the configuration repository to work in.')
 parser.add_argument('config',
 	help='Path of the configuration file to use, relative to repository.')
+parser.add_argument('-f', '--file', dest='filename',
+	help='Write to FILE instead of stdout. The output is first written to a '
+		'new file and the named file is then replaced.', metavar='FILE')
 parser.add_argument('-p', '--pull', dest='pull',
 	choices=['no', 'yes', 'require'], default='no',
 	help='Run "git pull" inside of the config repo. Defaults to "no", aborts '
@@ -25,6 +28,9 @@ parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+
+if args.filename is not None:
+	args.filename = os.path.realpath(args.filename)
 
 os.chdir(args.repository)
 
@@ -38,6 +44,12 @@ config = configparser.ConfigParser()
 config.read(args.config)
 
 basePath = os.path.realpath('keys')
+
+outputFile = sys.stdout
+if args.filename is not None:
+	temporaryFilename = f'{args.filename}.ssh-authmanager-new'
+	outputFile = open(temporaryFilename, 'w')
+	os.fchmod(outputFile.fileno(), 0o0600)
 
 keys = {}
 
@@ -178,4 +190,7 @@ for path, section in keys.items():
 	with open(path, 'r') as publicKeyFile:
 		publicKey = publicKeyFile.read().strip()
 
-	print(f'{",".join(options)} {publicKey}')
+	print(f'{",".join(options)} {publicKey}', file=outputFile)
+
+if args.filename is not None:
+	os.rename(temporaryFilename, args.filename)

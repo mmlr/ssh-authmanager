@@ -44,7 +44,7 @@ based on a configuration without installing anything. This usage is also a good
 way to validate the configuration and audit the generated authorized\_keys.
 
 ```
-$ ./ssh-authmanager.py my-config-repo hosts/my-host.conf > authorized_keys
+$ ./ssh-authmanager.py -f authorized_keys my-config-repo hosts/my-host.conf
 ```
 
 The produced authorized\_keys file then contains the rendered output of the

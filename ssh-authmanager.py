@@ -128,7 +128,7 @@ def parseSpec(spec, which):
 			restrict = []
 			permit.append(f'permit{which}="{f"{host}:" if host else ""}{port}"')
 
-	return restrict + permit
+	return restrict + permit, len(permit) > 0
 
 def escape(value):
 	return value.replace('"', '\\"')
@@ -142,11 +142,18 @@ for path, section in keys.items():
 	logging.debug(f'{path} merged config {section}')
 
 	options = ['restrict']
-	if 'open' in section or 'listen' in section:
-		options.append('port-forwarding')
-		for which in ('open', 'listen'):
-			portSpecs = section.get(which, '') if which in allowed else ''
-			options += parseSpec(portSpecs, which)
+
+	portOptions = ['open', 'listen']
+	forwarding = ['port-forwarding']
+	needed = False
+	for which in portOptions:
+		portSpecs = section.get(which, '') if which in allowed else ''
+		portOptions, hasPermit = parseSpec(portSpecs, which)
+		forwarding += portOptions
+		needed |= hasPermit
+
+	if needed:
+		options += forwarding
 
 	singleLineOptions = ['command', 'from']
 	for which in singleLineOptions:

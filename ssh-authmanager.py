@@ -10,7 +10,7 @@ import argparse
 
 
 allOptions = ['open', 'listen', 'command', 'from', 'environment', 'agent',
-	'pty', 'rc', 'x11', 'expiry', 'none']
+	'pty', 'rc', 'x11', 'expiry']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('repository',
@@ -27,9 +27,9 @@ parser.add_argument('-p', '--pull', dest='pull',
 	choices=['no', 'yes', 'require'], default='no',
 	help='Run "git pull" inside of the config repo. Defaults to "no", aborts '
 		'when set to "require" and the pull fails.')
-parser.add_argument('-a', '--allow', choices=allOptions, dest='allowed',
-	action='append', help='Only allow the specified options to be generated '
-		'from the config.')
+parser.add_argument('-a', '--allow', choices=allOptions + ['none'],
+	dest='allowed', action='append', help='Only allow the specified options to '
+		'be generated from the config.')
 parser.add_argument('-d', '--default', action='append', dest='defaults',
 	help='Add default options to all rendered output which can be overridden '
 		'by the configuration.')
@@ -176,7 +176,7 @@ for path, section in keys.items():
 	forwarding = ['port-forwarding']
 	needed = False
 	for which in portOptions:
-		portSpecs = section.get(which, '') if which in allowed else ''
+		portSpecs = section.pop(which, '') if which in allowed else ''
 		portOptions, hasPermit = parseSpec(portSpecs, which)
 		forwarding += portOptions
 		needed |= hasPermit
@@ -189,7 +189,7 @@ for path, section in keys.items():
 		if which not in allowed:
 			continue
 
-		value = section.get(which)
+		value = section.pop(which, None)
 		if value is None:
 			continue
 
@@ -207,7 +207,7 @@ for path, section in keys.items():
 		if which not in allowed:
 			continue
 
-		value = section.get(which)
+		value = section.pop(which, None)
 		if value is None:
 			continue
 
@@ -227,14 +227,14 @@ for path, section in keys.items():
 		if which not in allowed:
 			continue
 
-		value = section.get(which)
+		value = section.pop(which, None)
 		if value is None:
 			continue
 
 		options.append(f'{"" if value == "yes" else "no-"}{option}')
 
 	if 'expiry' in allowed:
-		expiry = section.get('expiry')
+		expiry = section.pop('expiry', None)
 		if expiry is not None:
 			if not expiry.isnumeric() or len(expiry) not in (8, 12, 14):
 				logging.error(f'invalid expiry format: {expiry}')
@@ -243,6 +243,10 @@ for path, section in keys.items():
 
 	with open(path, 'r') as publicKeyFile:
 		publicKey = publicKeyFile.read().strip()
+
+	for key in section.keys():
+		logging.warning('ignoring '
+			f'{"disallowed" if key in allOptions else "unknown"} key {key}')
 
 	print(f'{",".join(options)} {publicKey}', file=outputFile)
 

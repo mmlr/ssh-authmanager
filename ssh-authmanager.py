@@ -27,6 +27,12 @@ parser.add_argument('-p', '--pull', dest='pull',
 parser.add_argument('-a', '--allow', choices=allOptions, dest='allowed',
 	action='append', help='Only allow the specified options to be generated '
 		'from the config.')
+parser.add_argument('-d', '--default', action='append', dest='defaults',
+	help='Add default options to all rendered output which can be overridden '
+		'by the configuration.')
+parser.add_argument('-x', '--force', action='append', dest='forced',
+	help='Add forced options to all rendered output which can not be '
+		'overridden by the configuration.')
 parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
 	help='Set log level to debug.')
 
@@ -47,6 +53,21 @@ if args.pull != 'no':
 
 config = configparser.ConfigParser()
 config.read(args.config)
+
+defaults = {}
+forced = {}
+
+static = configparser.ConfigParser()
+for which in ('defaults', 'forced'):
+	values = getattr(args, which)
+	if not values:
+		continue
+
+	static.read_string('\n'.join([f'[{which}]'] + values))
+	{
+		'defaults': defaults,
+		'forced': forced
+	}[which].update(static[which].items())
 
 basePath = os.path.realpath('keys')
 
@@ -77,9 +98,13 @@ for section in config.sections():
 			continue
 
 		if realPath not in keys:
-			keys[realPath] = {}
+			keys[realPath] = defaults.copy()
 
 		keys[realPath].update(config[section].items())
+
+if forced:
+	for key in keys:
+		keys[key].update(forced)
 
 def parseSpec(spec, which):
 	restrict = [f'permit{which}="null:1"']

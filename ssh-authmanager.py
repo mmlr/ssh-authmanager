@@ -20,6 +20,9 @@ parser.add_argument('config',
 parser.add_argument('-f', '--file', dest='filename',
 	help='Write to FILE instead of stdout. The output is first written to a '
 		'new file and the named file is then replaced.', metavar='FILE')
+parser.add_argument('-m', '--mode', dest='filemode', default='0600',
+	help='Set the mode of the output file. The value is interpreted as octal '
+		'like in chmod and the default is 0600.')
 parser.add_argument('-p', '--pull', dest='pull',
 	choices=['no', 'yes', 'require'], default='no',
 	help='Run "git pull" inside of the config repo. Defaults to "no", aborts '
@@ -42,6 +45,7 @@ logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
 if args.filename is not None:
 	args.filename = os.path.realpath(args.filename)
+	args.filemode = int(args.filemode, 8)
 
 os.chdir(args.repository)
 
@@ -75,7 +79,7 @@ outputFile = sys.stdout
 if args.filename is not None:
 	temporaryFilename = f'{args.filename}.ssh-authmanager-new'
 	outputFile = open(temporaryFilename, 'w')
-	os.fchmod(outputFile.fileno(), 0o0600)
+	os.fchmod(outputFile.fileno(), args.filemode)
 
 keys = {}
 

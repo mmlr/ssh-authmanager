@@ -79,9 +79,9 @@ to your system.
 ## Repository Pull
 If the configuration repo is managed via git, the SSH Authmanager can be
 instructed to automatically do a `git pull` prior to evaluating the specified
-configuration with the optional `pull` or `pull-required` argument. In the
-`pull` case a failed `git pull` is treated as non-fatal, in the `pull-required`
-case a failure causes the program to exit without rendering any
+configuration with the optional `--pull` argument with `yes`, `no` or `required`
+as the value. In the `yes` case a failed `git pull` is treated as non-fatal, in
+the `required` case a failure causes the program to exit without rendering any
 authorized\_keys.
 
 The stdout and stderr of the git process are output on stderr for inspection and
